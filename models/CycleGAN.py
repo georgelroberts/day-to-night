@@ -18,10 +18,11 @@ class CycleGAN(keras.Model):
     def __init__(self):
         super(CycleGAN, self).__init__()
         # Define generator N2D, D2N, discriminator N, D (models and optimizers)
-        self.generator_D2N = get_generator()
-        self.generator_N2D = get_generator()
-        self.discriminator_D = get_discriminator()
-        self.discriminator_N = get_discriminator()
+        self.generator_D2N = get_generator('D2N')
+        self.generator_N2D = get_generator('N2D')
+        self.discriminator_D = get_discriminator('D')
+        self.discriminator_N = get_discriminator('N')
+        self.cycle_weight = tf.Variable(20.)
 
     def compile(self):
         super(CycleGAN, self).compile()
@@ -67,8 +68,10 @@ class CycleGAN(keras.Model):
             # and true images
             cycled_night = self.generator_D2N(gen_day)
             cycled_day = self.generator_N2D(gen_night)
-            cycle_loss_D2N = self.cycle_loss_fn(night_image, cycled_night)
-            cycle_loss_N2D = self.cycle_loss_fn(day_image, cycled_day)
+            cycle_loss_D2N = self.cycle_loss_fn(night_image, cycled_night,
+                    tf.keras.backend.get_value(self.cycle_weight))
+            cycle_loss_N2D = self.cycle_loss_fn(day_image, cycled_day,
+                    tf.keras.backend.get_value(self.cycle_weight))
             cycle_loss = cycle_loss_D2N + cycle_loss_N2D
 
             total_generator_N2D_loss = generator_N2D_loss + cycle_loss
@@ -104,31 +107,19 @@ class CycleGAN(keras.Model):
                 'disc_N_loss': discriminator_N_loss,
                 'disc_D_loss': discriminator_D_loss}
 
-    def compute_cycle_weight(self, epoch):
-        # Reduce cycle weight with epochs, as described in 'CycleGAN with
-        # Better Cycles' - T.Wang et al
-        # (https://ssnl.github.io/better_cycles/report.pdf) accessed 28th
-        # December 2020
-        if epoch > 10:
-            varied_weight = 10 - epoch/10
-            weight = max([0.1, varied_weight])
-        else:
-            weight = 10
-        return weight
 
-
-def get_discriminator():
+def get_discriminator(name):
     input_image = keras.layers.Input(shape=(64, 64, 3))
     activation = keras.layers.LeakyReLU(alpha=0.2)
     x = layers.Conv2D(16, 4, 2, padding='same', activation=activation)(input_image)
     x = layers.Conv2D(32, 4, 2, padding='same', activation=activation)(x)
     x = layers.Conv2D(64, 4, 2, padding='same', activation=activation)(x)
     x = layers.Conv2D(1, 4, 1, padding='same', activation=activation)(x)
-    model = keras.models.Model(input_image, x)
+    model = keras.models.Model(input_image, x, name=name)
     return model
 
 
-def get_generator():
+def get_generator(name):
     input_image = keras.layers.Input(shape=(64, 64, 3))
     x = layers.Conv2D(16, 3, 1, padding='same', activation='relu')(input_image)
     x = layers.Conv2D(32, 3, 2, padding='same', activation='relu')(x)
@@ -139,7 +130,7 @@ def get_generator():
     x = layers.Conv2DTranspose(32, 3, 2, padding='same', output_padding=1, activation='relu')(x)
     x = layers.Conv2DTranspose(16, 3, 2, padding='same', output_padding=1, activation='relu')(x)
     x = layers.Conv2D(3, 7, 1, padding='same', activation='relu')(x)
-    model = keras.models.Model(input_image, x)
+    model = keras.models.Model(input_image, x, name=name)
     return model
 
 

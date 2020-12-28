@@ -52,9 +52,9 @@ def discriminator_loss_fn(real, generated):
     return 0.5 * (generated_loss + real_loss)
 
 
-def cycle_loss_fn(real, cycled):
+def cycle_loss_fn(real, cycled, weight):
     loss = tf.reduce_mean(tf.abs(real - cycled))
-    return loss * 10
+    return loss * weight
 
 
 def load_dataset(batch_size):
@@ -81,13 +81,35 @@ def get_tensorboard_callback(run_name='default_run'):
     tb = tf.keras.callbacks.TensorBoard(log_dir=fpath, write_graph=False)
     return tb
 
+class RecalcCycleWeight(keras.callbacks.Callback):
+    def __init__(self):
+        self.init_weight = 20.0
+
+    def on_epoch_begin(self, epoch, logs=None):
+        cycle_weight = self.compute_cycle_weight(epoch)
+        tf.keras.backend.set_value(self.model.cycle_weight, cycle_weight)
+
+    def compute_cycle_weight(self, epoch):
+        # Reduce cycle weight with epochs, as described in 'CycleGAN with
+        # Better Cycles' - T.Wang et al
+        # (https://ssnl.github.io/better_cycles/report.pdf) accessed 28th
+        # December 2020
+        if epoch >= 0:
+            varied_weight = self.init_weight - epoch/10
+            weight = max([0.1, varied_weight])
+        else:
+            weight = self.init_weight
+        return weight
 
 class PlotExamples(keras.callbacks.Callback):
-    def __init__(self, day_ds, night_ds, debugging):
+    def __init__(self, day_ds, night_ds, debugging, folder):
         self.no_images = 4
         self.day_ds = day_ds
         self.night_ds = night_ds
         self.debugging = debugging
+        self.directory = Path('images', folder)
+        if not os.path.exists(self.directory):
+            os.mkdir(self.directory)
 
     def on_epoch_end(self, epoch, logs=None):
         _, ax = plt.subplots(4, 2, figsize=(12, 12))
@@ -106,9 +128,9 @@ class PlotExamples(keras.callbacks.Callback):
             prediction = keras.preprocessing.image.array_to_img(prediction)
 
         if self.debugging:
-            fpath = Path('images', f'DEBUG_day_combined_{epoch+1}.png')
+            fpath = Path(self.directory, f'DEBUG_day_combined_{epoch+1}.png')
         else:
-            fpath = Path('images', f'day_combined_{epoch+1}.png')
+            fpath = Path(self.directory, f'day_combined_{epoch+1}.png')
         plt.savefig(fpath)
         plt.close()
 
@@ -129,9 +151,9 @@ class PlotExamples(keras.callbacks.Callback):
             # fname = f"generated_img_{i}_{epoch+1}.png"
             # prediction.save(Path('images', fname))
         if self.debugging:
-            fpath = Path('images', f'DEBUG_night_combined_{epoch+1}.png')
+            fpath = Path(self.directory, f'DEBUG_night_combined_{epoch+1}.png')
         else:
-            fpath = Path('images', f'night_combined_{epoch+1}.png')
+            fpath = Path(self.directory, f'night_combined_{epoch+1}.png')
         plt.savefig(fpath)
         plt.close()
 
