@@ -11,6 +11,7 @@ import os
 def main():
     pass
 
+
 def load_dataset(batch_size):
     night_ds = tf.data.Dataset.list_files("data/night/*/*.png")
     day_ds = tf.data.Dataset.list_files("data/day/*/*.png")
