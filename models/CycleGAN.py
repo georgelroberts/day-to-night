@@ -9,8 +9,9 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from pathlib import Path
 
-from utils.utils import decode_image, resnet_block, generator_loss_fn,\
+from utils.CycleGANUtils import resnet_block, generator_loss_fn,\
         discriminator_loss_fn, cycle_loss_fn
+
 
 # TODO: Implement reflection padding
 
@@ -134,6 +135,8 @@ def get_generator(name):
     return model
 
 
+def main():
+    pass
 
 if __name__ == "__main__":
     main()
