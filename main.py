@@ -6,7 +6,8 @@ Description: Run train/test for any techniques
 
 import tensorflow as tf
 from absl import flags, app, logging
-from models.CycleGAN import CycleGAN, MUNIT
+from models.CycleGAN import CycleGAN
+from models.MUNIT import MUNIT
 from utils.utils import load_dataset, get_checkpoint_callback,\
         get_tensorboard_callback
 from utils.CycleGANUtils import PlotExamples, RecalcCycleWeight
