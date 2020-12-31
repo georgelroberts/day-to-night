@@ -31,14 +31,16 @@ def discriminator_loss_fn(real, generated):
     return generated_loss + real_loss
 
 
-def adaptive_instance_norm(content, gamma, beta, epsilon=1e-10):
+def adaptive_instance_norm(x, gamma, beta, epsilon=1e-10):
     # gamma and beta are output from MLP from style feature
 
-    content_mean, content_var = tf.nn.moments(content, axes=[1, 2],
-            keep_dims=True)
-    content_std = tf.sqrt(content_var + epsilon)
-
-    return gamma * ((content - content_mean) / content_std) + beta
+    mean, var = tf.nn.moments(x, axes=[1, 2], keepdims=True)
+    std = tf.sqrt(var + epsilon)
+    x = layers.Subtract()([x, mean])
+    x = layers.Multiply()([x, 1/std])
+    x = layers.Multiply()([x, gamma])
+    x = layers.Add()([x, beta])
+    return x
 
 
 def resnet_block(image_size):
@@ -53,17 +55,25 @@ def resnet_block(image_size):
     return model
 
 
-def adaptive_resnet_block(image_size, gamma1, gamma2, beta1, beta2):
+def adaptive_resnet_block(image_size):
     input_image = keras.layers.Input(shape=image_size)
+    input_mlp = keras.layers.Input(shape=(1024))
+    gamma1, gamma2, beta1, beta2 = tf.split(input_mlp, 4, axis=-1)
     x = layers.Conv2D(256, 3, padding='same', activation=None)(input_image)
     x = adaptive_instance_norm(x, gamma1, beta1)
     x = layers.ReLU()(x)
     x = layers.Conv2D(256, 3, padding='same', activation=None)(x)
     x = adaptive_instance_norm(x, gamma2, beta2)
     x = x + input_image
-    model = keras.models.Model(input_image, x)
+    model = keras.models.Model([input_image, input_mlp], x)
     return model
 
+def adain_mlp(image_size, no_params):
+    input_image = keras.layers.Input(shape=image_size)
+    x = layers.Dense(256)(input_image)
+    x = layers.Dense(no_params)(x)
+    model = keras.models.Model(input_image, x)
+    return model
 
 if __name__ == "__main__":
     main()

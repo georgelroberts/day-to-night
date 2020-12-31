@@ -12,7 +12,7 @@ from pathlib import Path
 
 from utils.MUNITUtils import reconstruction_loss_fn, generator_loss_fn,\
         discriminator_loss_fn, adaptive_instance_norm, adaptive_resnet_block,\
-        resnet_block
+        resnet_block, adain_mlp
 
 # TODO: Implement reflection padding
 # TODO: AdaIn for residual blocks
@@ -227,39 +227,44 @@ def get_content_encoder(name):
 
 
 def get_decoder(name):
-    # For each resnet layer, need 4 parameters.
-    # Define a fully connected NN that takes in style and outputs
-    # 16 variables
+    no_adain_params = 256 * 2 * 2 # No. feature maps
+    # no. conv layers per block * 2 (gamma+beta)
+    # no_adain_params = 256
 
     style = keras.layers.Input(shape=(8))
-    # xs = layers.Dense(256)(input_style)
-    # xs = layers.Dense(16)(xs)
+    adain_networks = []
+    for _ in range(4):
+        adain_layer = adain_mlp((8), no_adain_params)
+        xs = adain_layer(style)
+        adain_networks.append(xs)
+
     content = keras.layers.Input(shape=(16,16,256))
-    resnet_layer = resnet_block((16, 16, 256))
-    x = resnet_layer(content)
-    for _ in range(3):
-        resnet_layer = resnet_block((16, 16, 256))
-        x = resnet_layer(content)
+    adaptive_resnet_layer = adaptive_resnet_block((16, 16, 256))
+    x = adaptive_resnet_layer([content, adain_networks[0]])
+    for ii in range(3):
+        adaptive_resnet_layer = adaptive_resnet_block((16, 16, 256))
+        x = adaptive_resnet_layer([content, adain_networks[ii+1]])
     x = layers.UpSampling2D(size=(2,2))(x)
     x = layers.Conv2D(128, 5, 1, padding='same')(x)
     x = layers.UpSampling2D(size=(2,2))(x)
     x = layers.Conv2D(64, 5, 1, padding='same')(x)
     x = layers.Conv2D(3, 7, 1, padding='same')(x)
-
     model = keras.models.Model([style, content], x, name=name)
     return model
 
 
+
 def get_discriminator(name):
+    # Changed from original
     input_image = keras.layers.Input(shape=(64, 64, 3))
     activation = keras.layers.LeakyReLU(alpha=0.2)
-    x = layers.Conv2D(64, 4, 2, padding='same', activation=activation)(input_image)
     x = layers.Conv2D(128, 4, 2, padding='same', activation=activation)(input_image)
-    x = layers.Conv2D(256, 4, 2, padding='same', activation=activation)(input_image)
-    x = layers.Conv2D(512, 4, 2, padding='same', activation=activation)(input_image)
+    x = layers.Conv2D(64, 4, 2, padding='same', activation=activation)(x)
+    x = layers.Conv2D(32, 4, 2, padding='same', activation=activation)(x)
+    x = layers.Conv2D(16, 4, 2, padding='same', activation=activation)(x)
+    x = layers.Conv2D(1, 4, 1, padding='same', activation=activation)(x)
     model = keras.models.Model(input_image, x, name=name)
     return model
-
 
 
 def main():

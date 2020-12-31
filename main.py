@@ -13,10 +13,10 @@ from utils.utils import load_dataset, get_checkpoint_callback,\
 from utils.CycleGANUtils import PlotExamples, RecalcCycleWeight
 
 flags.DEFINE_string('technique', 'MUNIT', '')
-flags.DEFINE_boolean('debugging', True, '')
+flags.DEFINE_boolean('debugging', False, '')
 flags.DEFINE_integer('batch_size', 1, '')
 flags.DEFINE_integer('epochs', 10, '')
-flags.DEFINE_string('run_name', 'default', '')
+flags.DEFINE_string('run_name', 'no_adaIN', '')
 
 flags = flags.FLAGS
 

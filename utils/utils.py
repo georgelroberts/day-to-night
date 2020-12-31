@@ -43,7 +43,7 @@ def get_tensorboard_callback(run_name='default_run'):
     fpath = f'logs/{run_name}/'
     if os.path.exists(fpath):
         shutil.rmtree(fpath)
-    tb = tf.keras.callbacks.TensorBoard(log_dir=fpath, write_graph=False)
+    tb = tf.keras.callbacks.TensorBoard(log_dir=fpath, write_graph=True)
     return tb
 
 
