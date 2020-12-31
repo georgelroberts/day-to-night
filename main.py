@@ -16,8 +16,8 @@ from utils.MUNITUtils import PlotExamplesMUNIT
 flags.DEFINE_string('technique', 'MUNIT', '')
 flags.DEFINE_boolean('debugging', False, '')
 flags.DEFINE_integer('batch_size', 1, '')
-flags.DEFINE_integer('epochs', 10, '')
-flags.DEFINE_string('run_name', 'AdaIN', '')
+flags.DEFINE_integer('epochs', 200, '')
+flags.DEFINE_string('run_name', 'None', '')
 
 flags = flags.FLAGS
 
