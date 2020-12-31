@@ -69,7 +69,7 @@ class RecalcCycleWeight(keras.callbacks.Callback):
         return weight
 
 
-class PlotExamples(keras.callbacks.Callback):
+class PlotExamplesCycleGAN(keras.callbacks.Callback):
     def __init__(self, day_ds, night_ds, debugging, folder):
         self.no_images = 4
         self.day_ds = day_ds
@@ -80,7 +80,7 @@ class PlotExamples(keras.callbacks.Callback):
             os.mkdir(self.directory)
 
     def on_epoch_end(self, epoch, logs=None):
-        _, ax = plt.subplots(4, 2, figsize=(12, 12))
+        _, ax = plt.subplots(self.no_images, 2, figsize=(12, 12))
         for i, img in enumerate(self.day_ds.take(self.no_images)):
             prediction = self.model.generator_D2N(img)[0].numpy()
             prediction = (prediction * 255).astype(np.uint8)

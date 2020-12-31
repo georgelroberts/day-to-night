@@ -10,13 +10,14 @@ from models.CycleGAN import CycleGAN
 from models.MUNIT import MUNIT
 from utils.utils import load_dataset, get_checkpoint_callback,\
         get_tensorboard_callback
-from utils.CycleGANUtils import PlotExamples, RecalcCycleWeight
+from utils.CycleGANUtils import PlotExamplesCycleGAN, RecalcCycleWeight
+from utils.MUNITUtils import PlotExamplesMUNIT
 
 flags.DEFINE_string('technique', 'MUNIT', '')
 flags.DEFINE_boolean('debugging', False, '')
 flags.DEFINE_integer('batch_size', 1, '')
 flags.DEFINE_integer('epochs', 10, '')
-flags.DEFINE_string('run_name', 'no_adaIN', '')
+flags.DEFINE_string('run_name', 'AdaIN', '')
 
 flags = flags.FLAGS
 
@@ -28,10 +29,14 @@ def train():
     callbacks = []
     if flags.technique == 'CycleGAN':
         model = CycleGAN()
-        plotter = PlotExamples(day_ds, night_ds, flags.debugging, flags.run_name)
+        plotter = PlotExamplesCycleGAN(day_ds, night_ds,
+                flags.debugging, flags.run_name)
         cycle_weight_callback = RecalcCycleWeight()
         callbacks.extend([plotter, cycle_weight_callback])
     elif flags.technique == 'MUNIT':
+        plotter = PlotExamplesMUNIT(day_ds, night_ds,
+                flags.debugging, flags.run_name)
+        callbacks.extend([plotter])
         model = MUNIT()
     else:
         logger.info(f"Technique {flags.technique} not yet implemented")
@@ -44,7 +49,7 @@ def train():
         model.fit(combined_ds.take(5), epochs=3,
                 callbacks=callbacks)
     else:
-        model.fit(combined_ds, epochs=flags.epochs,
+        model.fit(combined_ds.take(100), epochs=flags.epochs,
                 callbacks=callbacks)
 
 
