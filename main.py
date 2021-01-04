@@ -17,7 +17,7 @@ flags.DEFINE_string('technique', 'MUNIT', '')
 flags.DEFINE_boolean('debugging', False, '')
 flags.DEFINE_integer('batch_size', 1, '')
 flags.DEFINE_integer('epochs', 200, '')
-flags.DEFINE_string('run_name', 'None', '')
+flags.DEFINE_string('run_name', 'lowerReconLoss', '')
 
 flags = flags.FLAGS
 
@@ -40,10 +40,11 @@ def train():
         model = MUNIT()
     else:
         logger.info(f"Technique {flags.technique} not yet implemented")
-    model.compile()
     checkpointer = get_checkpoint_callback(flags.run_name)
     tb_callback = get_tensorboard_callback(flags.run_name)
     callbacks.extend([checkpointer, tb_callback])
+    model.compile()
+    # model.load_weights(f'tmp/{run_name}/{run_name}.ckpt')
 
     if flags.debugging:
         model.fit(combined_ds.take(5), epochs=3,

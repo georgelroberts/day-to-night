@@ -7,6 +7,9 @@ Description: Common utils
 import tensorflow as tf
 import shutil
 import os
+from pathlib import Path
+cdir = Path(os.path.dirname(__file__))
+main_dir = cdir.parent
 
 def main():
     pass
@@ -27,15 +30,18 @@ def decode_image(fpath):
     img = tf.image.decode_jpeg(img, channels=3)
     img = tf.cast(img, dtype=tf.float32) / 255
     # resize the image to the desired size
-    return tf.image.resize(img, [64, 64])
+    return tf.image.resize(img, [256, 256])
 
 
 def get_checkpoint_callback(run_name='checkpoint'):
-    fpath = f'tmp/{run_name}/'
+    folder = Path(main_dir, f'tmp/{run_name}')
+    fpath = Path(folder, f'{run_name}.ckpt')
     if os.path.exists(fpath):
         shutil.rmtree(fpath)
+    if not os.path.exists(folder):
+        os.mkdir(folder)
     checkpoint = tf.keras.callbacks.ModelCheckpoint(
-            fpath)
+            fpath, save_weights_only=True, save_freq='epoch', verbose=1)
     return checkpoint
 
 
