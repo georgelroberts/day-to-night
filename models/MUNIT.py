@@ -129,12 +129,12 @@ class MUNIT(keras.Model):
                     discriminated_day_real, discriminated_day_fake)
 
             total_generator_loss_N = generator_loss_N +\
-                    recon_loss_real_N * 10 +\
+                    recon_loss_real_N * 2 +\
                     recon_loss_content_N +\
                     recon_loss_style_N +\
                     recon_loss_redecoded_N
             total_generator_loss_D = generator_loss_D +\
-                    recon_loss_real_D * 10 +\
+                    recon_loss_real_D * 2 +\
                     recon_loss_content_D +\
                     recon_loss_style_D +\
                     recon_loss_redecoded_D
@@ -194,7 +194,7 @@ class MUNIT(keras.Model):
 
 
 def get_style_encoder(name):
-    input_image = keras.layers.Input(shape=(64, 64, 3))
+    input_image = keras.layers.Input(shape=(256, 256, 3))
     activation = keras.layers.ReLU()
     x = layers.Conv2D(64, 7, 1, padding='same', activation=activation)(
             input_image)
@@ -209,19 +209,19 @@ def get_style_encoder(name):
 
 
 def get_content_encoder(name):
-    input_image = keras.layers.Input(shape=(64, 64, 3))
+    input_image = keras.layers.Input(shape=(256, 256, 3))
     activation = keras.layers.ReLU()
     x = layers.Conv2D(64, 7, 1, padding='same')(input_image)
-    x = tfa.layers.InstanceNormalization()(x)
+    x = tfa.layers.InstanceNormalization(axis=-1)(x)
     x = activation(x)
     x = layers.Conv2D(128, 4, 2, padding='same')(x)
-    x = tfa.layers.InstanceNormalization()(x)
+    x = tfa.layers.InstanceNormalization(axis=-1)(x)
     x = activation(x)
     x = layers.Conv2D(256, 4, 2, padding='same')(x)
-    x = tfa.layers.InstanceNormalization()(x)
+    x = tfa.layers.InstanceNormalization(axis=-1)(x)
     x = activation(x)
     for _ in range(6):
-        resnet_layer = resnet_block((16, 16, 256))
+        resnet_layer = resnet_block((64, 64, 256))
         x = resnet_layer(x)
     model = keras.models.Model(input_image, x, name=name)
     return model
@@ -239,11 +239,11 @@ def get_decoder(name):
         xs = adain_layer(style)
         adain_networks.append(xs)
 
-    content = keras.layers.Input(shape=(16,16,256))
-    adaptive_resnet_layer = adaptive_resnet_block((16, 16, 256))
+    content = keras.layers.Input(shape=(64,64,256))
+    adaptive_resnet_layer = adaptive_resnet_block((64, 64, 256))
     x = adaptive_resnet_layer([content, adain_networks[0]])
     for ii in range(3):
-        adaptive_resnet_layer = adaptive_resnet_block((16, 16, 256))
+        adaptive_resnet_layer = adaptive_resnet_block((64, 64, 256))
         x = adaptive_resnet_layer([content, adain_networks[ii+1]])
     x = layers.UpSampling2D(size=(2,2))(x)
     x = layers.Conv2D(128, 5, 1, padding='same')(x)
@@ -257,13 +257,13 @@ def get_decoder(name):
 
 def get_discriminator(name):
     # Changed from original
-    input_image = keras.layers.Input(shape=(64, 64, 3))
+    input_image = keras.layers.Input(shape=(256, 256, 3))
     activation = keras.layers.LeakyReLU(alpha=0.2)
-    x = layers.Conv2D(128, 4, 2, padding='same', activation=activation)(input_image)
-    x = layers.Conv2D(64, 4, 2, padding='same', activation=activation)(x)
-    x = layers.Conv2D(32, 4, 2, padding='same', activation=activation)(x)
-    x = layers.Conv2D(16, 4, 2, padding='same', activation=activation)(x)
-    x = layers.Conv2D(1, 4, 1, padding='same', activation=activation)(x)
+    x = layers.Conv2D(64, 4, 2, padding='same', activation=activation)(input_image)
+    x = layers.Conv2D(128, 4, 2, padding='same', activation=activation)(x)
+    x = layers.Conv2D(256, 4, 2, padding='same', activation=activation)(x)
+    x = layers.Conv2D(512, 4, 2, padding='same', activation=activation)(x)
+    x = layers.Conv2D(1, 1, 1, padding='same', activation=activation)(x)
     model = keras.models.Model(input_image, x, name=name)
     return model
 
