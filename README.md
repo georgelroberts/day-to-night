@@ -12,6 +12,7 @@ N.B. All training is run on my local laptop, thus network sizes are small.
 CycleGAN: Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks (https://arxiv.org/pdf/1703.10593.pdf).
 	This work introduces the concept of 'cycle consistency', whereby we minimize the difference between the real image 
 	and the image after being passed through the encoder and then the decoder.
+	
 MUNIT: Multimodal Unsupervised Image-to-Image Translation (https://arxiv.org/pdf/1804.04732.pdf).
 	This is based on a disentangled representation. The encoder consists of two separate
 	networks, the style encoder (which should contain the concept of 'day' or 'night') 
