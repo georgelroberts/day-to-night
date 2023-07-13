@@ -26,8 +26,7 @@ def resnet_block(image_size):
     x = layers.Conv2D(64, 3, padding='same', activation=None)(x)
     x = layers.BatchNormalization()(x)
     x = x + input_image
-    model = keras.models.Model(input_image, x)
-    return model
+    return keras.models.Model(input_image, x)
 
 
 def generator_loss_fn(generated):
@@ -57,16 +56,10 @@ class RecalcCycleWeight(keras.callbacks.Callback):
         tf.keras.backend.set_value(self.model.cycle_weight, cycle_weight)
 
     def compute_cycle_weight(self, epoch):
-        # Reduce cycle weight with epochs, as described in 'CycleGAN with
-        # Better Cycles' - T.Wang et al
-        # (https://ssnl.github.io/better_cycles/report.pdf) accessed 28th
-        # December 2020
-        if epoch >= 0:
-            varied_weight = self.init_weight - epoch/10
-            weight = max([0.1, varied_weight])
-        else:
-            weight = self.init_weight
-        return weight
+        if epoch < 0:
+            return self.init_weight
+        varied_weight = self.init_weight - epoch/10
+        return max([0.1, varied_weight])
 
 
 class PlotExamplesCycleGAN(keras.callbacks.Callback):

@@ -40,17 +40,16 @@ def get_checkpoint_callback(run_name='checkpoint'):
         shutil.rmtree(fpath)
     if not os.path.exists(folder):
         os.mkdir(folder)
-    checkpoint = tf.keras.callbacks.ModelCheckpoint(
-            fpath, save_weights_only=True, save_freq='epoch', verbose=1)
-    return checkpoint
+    return tf.keras.callbacks.ModelCheckpoint(
+        fpath, save_weights_only=True, save_freq='epoch', verbose=1
+    )
 
 
 def get_tensorboard_callback(run_name='default_run'):
     fpath = f'logs/{run_name}/'
     if os.path.exists(fpath):
         shutil.rmtree(fpath)
-    tb = tf.keras.callbacks.TensorBoard(log_dir=fpath, write_graph=True)
-    return tb
+    return tf.keras.callbacks.TensorBoard(log_dir=fpath, write_graph=True)
 
 
 if __name__ == "__main__":

@@ -204,8 +204,7 @@ def get_style_encoder(name):
     x = layers.Conv2D(256, 4, 2, padding='same', activation=activation)(x)
     x = layers.GlobalAveragePooling2D()(x)
     x = layers.Dense(8)(x)
-    model = keras.models.Model(input_image, x, name=name)
-    return model
+    return keras.models.Model(input_image, x, name=name)
 
 
 def get_content_encoder(name):
@@ -223,8 +222,7 @@ def get_content_encoder(name):
     for _ in range(6):
         resnet_layer = resnet_block((64, 64, 256))
         x = resnet_layer(x)
-    model = keras.models.Model(input_image, x, name=name)
-    return model
+    return keras.models.Model(input_image, x, name=name)
 
 
 def get_decoder(name):
@@ -250,8 +248,7 @@ def get_decoder(name):
     x = layers.UpSampling2D(size=(2,2))(x)
     x = layers.Conv2D(64, 5, 1, padding='same')(x)
     x = layers.Conv2D(3, 7, 1, padding='same')(x)
-    model = keras.models.Model([style, content], x, name=name)
-    return model
+    return keras.models.Model([style, content], x, name=name)
 
 
 
@@ -264,8 +261,7 @@ def get_discriminator(name):
     x = layers.Conv2D(256, 4, 2, padding='same', activation=activation)(x)
     x = layers.Conv2D(512, 4, 2, padding='same', activation=activation)(x)
     x = layers.Conv2D(1, 1, 1, padding='same', activation=activation)(x)
-    model = keras.models.Model(input_image, x, name=name)
-    return model
+    return keras.models.Model(input_image, x, name=name)
 
 
 def main():

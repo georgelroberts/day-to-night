@@ -116,8 +116,7 @@ def get_discriminator(name):
     x = layers.Conv2D(32, 4, 2, padding='same', activation=activation)(x)
     x = layers.Conv2D(64, 4, 2, padding='same', activation=activation)(x)
     x = layers.Conv2D(1, 4, 1, padding='same', activation=activation)(x)
-    model = keras.models.Model(input_image, x, name=name)
-    return model
+    return keras.models.Model(input_image, x, name=name)
 
 
 def get_generator(name):
@@ -131,8 +130,7 @@ def get_generator(name):
     x = layers.Conv2DTranspose(32, 3, 2, padding='same', output_padding=1, activation='relu')(x)
     x = layers.Conv2DTranspose(16, 3, 2, padding='same', output_padding=1, activation='relu')(x)
     x = layers.Conv2D(3, 7, 1, padding='same', activation='relu')(x)
-    model = keras.models.Model(input_image, x, name=name)
-    return model
+    return keras.models.Model(input_image, x, name=name)
 
 
 def main():

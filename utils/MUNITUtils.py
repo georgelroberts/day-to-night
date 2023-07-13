@@ -56,8 +56,7 @@ def resnet_block(image_size):
     x = layers.Conv2D(256, 3, padding='same', activation=None)(x)
     x = tfa.layers.InstanceNormalization()(x)
     x = x + input_image
-    model = keras.models.Model(input_image, x)
-    return model
+    return keras.models.Model(input_image, x)
 
 
 def adaptive_resnet_block(image_size):
@@ -70,16 +69,14 @@ def adaptive_resnet_block(image_size):
     x = layers.Conv2D(256, 3, padding='same', activation=None)(x)
     x = adaptive_instance_norm(x, gamma2, beta2)
     x = x + input_image
-    model = keras.models.Model([input_image, input_mlp], x)
-    return model
+    return keras.models.Model([input_image, input_mlp], x)
 
 
 def adain_mlp(image_size, no_params):
     input_image = keras.layers.Input(shape=image_size)
     x = layers.Dense(256)(input_image)
     x = layers.Dense(no_params)(x)
-    model = keras.models.Model(input_image, x)
-    return model
+    return keras.models.Model(input_image, x)
 
 
 class PlotExamplesMUNIT(keras.callbacks.Callback):
